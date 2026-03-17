@@ -14,16 +14,18 @@
     .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
     .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #333; }
     input, select { width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; margin-bottom: 10px; }
-    button { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
     .btn-add { background: #ff6b00; color: white; }
-    .btn-entrata { background: #34c759; color: white; margin-bottom: 8px; }
+    .btn-entrata { background: #34c759; color: white; }
     .btn-uscita { background: #ff3b30; color: white; }
     .btn-rep { background: #5856d6; color: white; }
+    .btn-spese { background: #ff9500; color: white; }
+    .btn-export { background: #007aff; color: white; }
     .cantiere-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
     .cantiere-item:last-child { border-bottom: none; }
     .cantiere-nome { font-size: 15px; font-weight: 500; }
-    .delete-btn { background: none; border: none; color: #ff3b30; font-size: 20px; cursor: pointer; width: auto; padding: 0 8px; }
-    .log-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .delete-btn { background: none; border: none; color: #ff3b30; font-size: 20px; cursor: pointer; width: auto; padding: 0 8px; margin: 0; }
+    .log-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; display: flex; justify-content: space-between; align-items: flex-start; }
     .log-item:last-child { border-bottom: none; }
     .log-data { font-weight: 600; color: #333; }
     .log-dettaglio { color: #666; margin-top: 2px; }
@@ -31,8 +33,12 @@
     .badge-entrata { background: #d4f5dc; color: #1a7a2e; }
     .badge-uscita { background: #ffd5d3; color: #a30000; }
     .badge-rep { background: #e0dfff; color: #3634a3; }
+    .badge-spese { background: #fff0d4; color: #a35c00; }
     .empty { text-align: center; color: #aaa; font-size: 14px; padding: 16px 0; }
-    .export-btn { background: #007aff; color: white; margin-top: 8px; }
+    .label { font-size: 13px; color: #666; margin-bottom: 4px; margin-top: 4px; }
+    .row { display: flex; gap: 8px; }
+    .row input { margin-bottom: 10px; }
+    .tecnico-attivo { font-size: 13px; color: #ff6b00; font-weight: 600; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -43,6 +49,14 @@
 </header>
 
 <div class="container">
+
+  <!-- TECNICO -->
+  <div class="card">
+    <h2>👷 Tecnico</h2>
+    <input type="text" id="nome-tecnico" placeholder="Il tuo nome (es. Mirko Polizio)">
+    <button class="btn-add" onclick="salvaTecnico()">Salva Nome</button>
+    <div class="tecnico-attivo" id="tecnico-attivo"></div>
+  </div>
 
   <!-- AGGIUNGI CANTIERE -->
   <div class="card">
@@ -60,41 +74,82 @@
   <!-- REGISTRA INGRESSO / USCITA -->
   <div class="card">
     <h2>🕐 Registra Movimento</h2>
+    <p class="label">Seleziona cantiere</p>
     <select id="cantiere-selezionato">
       <option value="">— Seleziona cantiere —</option>
     </select>
+    <p class="label">Data (lascia oggi o scegli un giorno precedente)</p>
+    <input type="date" id="data-movimento">
+    <p class="label">Ora</p>
+    <input type="time" id="ora-movimento">
     <button class="btn-entrata" onclick="registra('entrata')">▶ Registra Entrata</button>
     <button class="btn-uscita" onclick="registra('uscita')">■ Registra Uscita</button>
+  </div>
+
+  <!-- RIMBORSI SPESE -->
+  <div class="card">
+    <h2>💶 Rimborso Spese</h2>
+    <p class="label">Data</p>
+    <input type="date" id="data-spesa">
+    <p class="label">Descrizione</p>
+    <input type="text" id="desc-spesa" placeholder="es. Carburante, Autostrada...">
+    <p class="label">Importo (€)</p>
+    <input type="number" id="importo-spesa" placeholder="es. 25.50" step="0.01" min="0">
+    <button class="btn-spese" onclick="registraSpesa()">💶 Aggiungi Spesa</button>
   </div>
 
   <!-- REPERIBILITÀ -->
   <div class="card">
     <h2>📅 Reperibilità</h2>
-    <p style="font-size:14px;color:#666;margin-bottom:10px;">Premi il pulsante per segnare oggi come giornata di reperibilità</p>
-    <button class="btn-rep" onclick="registraReperibilita()">📞 Segna Reperibilità Oggi</button>
+    <p class="label">Data</p>
+    <input type="date" id="data-reperibilita">
+    <button class="btn-rep" onclick="registraReperibilita()">📞 Segna Reperibilità</button>
   </div>
 
   <!-- REPORT -->
   <div class="card">
     <h2>📊 Report</h2>
     <div id="report"><p class="empty">Nessuna registrazione ancora</p></div>
-    <button class="export-btn" onclick="esportaCSV()">⬇ Esporta CSV</button>
+    <button class="btn-export" onclick="esportaCSV()">⬇ Esporta CSV</button>
   </div>
 
 </div>
 
 <script>
-  // Data oggi
+  // Data e ora di oggi come default
   const oggi = new Date();
   document.getElementById('data-oggi').textContent = oggi.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const dataOggiISO = oggi.toISOString().split('T')[0];
+  const oraOggi = oggi.toTimeString().slice(0,5);
+
+  document.getElementById('data-movimento').value = dataOggiISO;
+  document.getElementById('ora-movimento').value = oraOggi;
+  document.getElementById('data-spesa').value = dataOggiISO;
+  document.getElementById('data-reperibilita').value = dataOggiISO;
 
   // Carica dati
   let cantieri = JSON.parse(localStorage.getItem('cantieri') || '[]');
   let log = JSON.parse(localStorage.getItem('log') || '[]');
+  let tecnico = localStorage.getItem('tecnico') || '';
+
+  if (tecnico) {
+    document.getElementById('tecnico-attivo').textContent = '✅ Tecnico attivo: ' + tecnico;
+    document.getElementById('nome-tecnico').value = tecnico;
+  }
 
   function salva() {
     localStorage.setItem('cantieri', JSON.stringify(cantieri));
     localStorage.setItem('log', JSON.stringify(log));
+  }
+
+  function salvaTecnico() {
+    const nome = document.getElementById('nome-tecnico').value.trim();
+    if (!nome) return alert('Inserisci il tuo nome');
+    tecnico = nome;
+    localStorage.setItem('tecnico', tecnico);
+    document.getElementById('tecnico-attivo').textContent = '✅ Tecnico attivo: ' + tecnico;
+    alert('Nome salvato!');
   }
 
   function aggiungiCantiere() {
@@ -135,52 +190,87 @@
   function registra(tipo) {
     const cantiere = document.getElementById('cantiere-selezionato').value;
     if (!cantiere) return alert('Seleziona un cantiere');
-    const ora = new Date();
-    log.unshift({
-      data: ora.toLocaleDateString('it-IT'),
-      ora: ora.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-      cantiere,
-      tipo
-    });
+    const data = document.getElementById('data-movimento').value;
+    const ora = document.getElementById('ora-movimento').value;
+    if (!data || !ora) return alert('Inserisci data e ora');
+    const dataFormattata = new Date(data).toLocaleDateString('it-IT');
+    const id = Date.now();
+    log.unshift({ id, data: dataFormattata, dataISO: data, ora, cantiere, tecnico, tipo });
     salva();
     renderReport();
-    alert((tipo === 'entrata' ? '✅ Entrata' : '🔴 Uscita') + ' registrata alle ' + ora.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
+    alert((tipo === 'entrata' ? '✅ Entrata' : '🔴 Uscita') + ' registrata — ' + dataFormattata + ' ore ' + ora);
+  }
+
+  function registraSpesa() {
+    const data = document.getElementById('data-spesa').value;
+    const desc = document.getElementById('desc-spesa').value.trim();
+    const importo = parseFloat(document.getElementById('importo-spesa').value);
+    if (!data) return alert('Inserisci la data');
+    if (!desc) return alert('Inserisci una descrizione');
+    if (isNaN(importo) || importo <= 0) return alert('Inserisci un importo valido');
+    const dataFormattata = new Date(data).toLocaleDateString('it-IT');
+    const id = Date.now();
+    log.unshift({ id, data: dataFormattata, dataISO: data, ora: '', cantiere: desc, tecnico, tipo: 'spesa', importo });
+    salva();
+    renderReport();
+    document.getElementById('desc-spesa').value = '';
+    document.getElementById('importo-spesa').value = '';
+    alert('💶 Spesa di €' + importo.toFixed(2) + ' aggiunta per il ' + dataFormattata);
   }
 
   function registraReperibilita() {
-    const ora = new Date();
-    const dataOggi = ora.toLocaleDateString('it-IT');
-    const giàPresente = log.find(l => l.data === dataOggi && l.tipo === 'reperibilità');
-    if (giàPresente) return alert('Reperibilità già segnata per oggi');
-    log.unshift({ data: dataOggi, ora: '', cantiere: '', tipo: 'reperibilità' });
+    const data = document.getElementById('data-reperibilita').value;
+    if (!data) return alert('Seleziona una data');
+    const dataFormattata = new Date(data).toLocaleDateString('it-IT');
+    const giàPresente = log.find(l => l.dataISO === data && l.tipo === 'reperibilità');
+    if (giàPresente) return alert('Reperibilità già segnata per ' + dataFormattata);
+    const id = Date.now();
+    log.unshift({ id, data: dataFormattata, dataISO: data, ora: '', cantiere: '', tecnico, tipo: 'reperibilità' });
     salva();
     renderReport();
-    alert('📅 Reperibilità segnata per oggi');
+    alert('📅 Reperibilità segnata per ' + dataFormattata);
+  }
+
+  function eliminaEvento(id) {
+    if (!confirm('Eliminare questo evento?')) return;
+    log = log.filter(l => l.id !== id);
+    salva();
+    renderReport();
   }
 
   function renderReport() {
     const div = document.getElementById('report');
     if (log.length === 0) { div.innerHTML = '<p class="empty">Nessuna registrazione ancora</p>'; return; }
-    div.innerHTML = log.map(r => {
+    // Ordina per data decrescente
+    const logOrdinato = [...log].sort((a, b) => new Date(b.dataISO) - new Date(a.dataISO));
+    div.innerHTML = logOrdinato.map(r => {
+      let contenuto = '';
       if (r.tipo === 'reperibilità') {
-        return `<div class="log-item">
-          <div class="log-data">📅 ${r.data}</div>
-          <div class="log-dettaglio"><span class="badge badge-rep">Reperibilità</span></div>
-        </div>`;
+        contenuto = `<span class="badge badge-rep">Reperibilità</span>${r.tecnico ? '— ' + r.tecnico : ''}`;
+      } else if (r.tipo === 'spesa') {
+        contenuto = `<span class="badge badge-spese">Spesa</span>${r.cantiere} — <strong>€${parseFloat(r.importo).toFixed(2)}</strong>`;
+      } else {
+        const badge = r.tipo === 'entrata' ? 'badge-entrata' : 'badge-uscita';
+        const label = r.tipo === 'entrata' ? 'Entrata' : 'Uscita';
+        contenuto = `<span class="badge ${badge}">${label}</span>${r.cantiere}${r.tecnico ? ' — ' + r.tecnico : ''}`;
       }
-      const badge = r.tipo === 'entrata' ? 'badge-entrata' : 'badge-uscita';
-      const label = r.tipo === 'entrata' ? 'Entrata' : 'Uscita';
       return `<div class="log-item">
-        <div class="log-data">${r.data} — ${r.ora}</div>
-        <div class="log-dettaglio"><span class="badge ${badge}">${label}</span>${r.cantiere}</div>
+        <div style="flex:1">
+          <div class="log-data">${r.data}${r.ora ? ' — ' + r.ora : ''}</div>
+          <div class="log-dettaglio">${contenuto}</div>
+        </div>
+        <button class="delete-btn" onclick="eliminaEvento(${r.id})">✕</button>
       </div>`;
     }).join('');
   }
 
   function esportaCSV() {
     if (log.length === 0) return alert('Nessun dato da esportare');
-    let csv = 'Data,Ora,Cantiere,Tipo\n';
-    log.forEach(r => { csv += `${r.data},${r.ora},${r.cantiere},${r.tipo}\n`; });
+    let csv = 'Data,Ora,Cantiere/Descrizione,Tecnico,Tipo,Importo\n';
+    const logOrdinato = [...log].sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+    logOrdinato.forEach(r => {
+      csv += `${r.data},${r.ora},"${r.cantiere}","${r.tecnico || ''}",${r.tipo},${r.importo || ''}\n`;
+    });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
