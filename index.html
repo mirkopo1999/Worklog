@@ -26,6 +26,7 @@
     .btn-spese { background: #ff9500; color: white; }
     .btn-export { background: #007aff; color: white; }
     .btn-pdf { background: #1c1c1e; color: white; }
+    .btn-report { background: #ff6b00; color: white; font-size: 16px; padding: 15px; border-radius: 14px; }
     .cantiere-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
     .cantiere-item:last-child { border-bottom: none; }
     .cantiere-nome { font-size: 15px; font-weight: 500; }
@@ -48,6 +49,12 @@
     .row2 { display: flex; gap: 8px; }
     .row2 > * { flex: 1; }
     .data-globale { background: #fff8f4; border: 1px solid #ff6b00; border-radius: 10px; padding: 12px 14px; margin-bottom: 0; font-size: 15px; font-weight: 600; color: #ff6b00; }
+    .report-panel { display: none; margin-top: 12px; }
+    .report-panel.aperto { display: block; }
+    .search-box { display: flex; align-items: center; background: #f2f2f7; border-radius: 10px; padding: 0 12px; margin-bottom: 12px; border: 1px solid #ddd; }
+    .search-box span { font-size: 18px; margin-right: 8px; color: #aaa; }
+    .search-box input { border: none; background: transparent; padding: 11px 0; font-size: 15px; outline: none; margin-bottom: 0; }
+    .risultati-count { font-size: 12px; color: #aaa; text-align: right; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -74,14 +81,14 @@
     <input type="date" id="data-globale" class="data-globale" onchange="sincronizzaDate(this.value)">
   </div>
 
-  <!-- AGGIUNGI CANTIERE -->
+  <!-- AGGIUNGI LUOGO -->
   <div class="card">
     <h2>📍 Aggiungi Luogo di Lavoro</h2>
     <input type="text" id="nome-cantiere" placeholder="Nome luogo (es. Sede centrale, Cantiere Roma...)">
     <button class="btn-add" onclick="aggiungiCantiere()">+ Aggiungi</button>
   </div>
 
-  <!-- CANTIERI SALVATI -->
+  <!-- LUOGHI SALVATI -->
   <div class="card">
     <h2>📋 Luoghi Salvati</h2>
     <div id="lista-cantieri"><p class="empty">Nessun luogo aggiunto</p></div>
@@ -129,8 +136,15 @@
 
   <!-- REPORT -->
   <div class="card">
-    <h2>📊 Report</h2>
-    <div id="report"><p class="empty">Nessuna registrazione ancora</p></div>
+    <button class="btn-report" onclick="toggleReport()" id="btn-apri-report">📊 Mostra Report</button>
+    <div class="report-panel" id="report-panel">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="cerca-report" placeholder="Cerca per luogo, tipo, importo..." oninput="renderReport()">
+      </div>
+      <div class="risultati-count" id="risultati-count"></div>
+      <div id="report"><p class="empty">Nessuna registrazione ancora</p></div>
+    </div>
   </div>
 
   <!-- ESPORTA -->
@@ -162,6 +176,22 @@
       const el = document.getElementById(id);
       if (el && el.value !== val) el.value = val;
     });
+  }
+
+  let reportAperto = false;
+  function toggleReport() {
+    reportAperto = !reportAperto;
+    const panel = document.getElementById('report-panel');
+    const btn = document.getElementById('btn-apri-report');
+    if (reportAperto) {
+      panel.classList.add('aperto');
+      btn.textContent = '📊 Nascondi Report';
+      renderReport();
+      document.getElementById('cerca-report').focus();
+    } else {
+      panel.classList.remove('aperto');
+      btn.textContent = '📊 Mostra Report';
+    }
   }
 
   const mesiNomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
@@ -248,7 +278,7 @@
     const id = Date.now();
     log.unshift({ id, data, dataISO, cantiere, tecnico, tipo: 'lavoro', straordinari: straordinari || '' });
     salva();
-    renderReport();
+    if (reportAperto) renderReport();
     document.getElementById('straordinari').value = '';
     alert('✅ Giornata registrata — ' + data + ' — ' + cantiere);
   }
@@ -262,7 +292,7 @@
     const id = Date.now();
     log.unshift({ id, data, dataISO, cantiere: '', tecnico, tipo });
     salva();
-    renderReport();
+    if (reportAperto) renderReport();
     const etichette = { ferie: '🏖 Ferie', permesso: '📝 Permesso', malattia: '🤒 Malattia' };
     alert(etichette[tipo] + ' segnata per ' + data);
   }
@@ -276,7 +306,7 @@
     const id = Date.now();
     log.unshift({ id, data, dataISO, cantiere: '', tecnico, tipo: 'reperibilità' });
     salva();
-    renderReport();
+    if (reportAperto) renderReport();
     alert('📅 Reperibilità segnata per ' + data);
   }
 
@@ -291,7 +321,7 @@
     const id = Date.now();
     log.unshift({ id, data, dataISO, cantiere: desc, tecnico, tipo: 'spesa', importo });
     salva();
-    renderReport();
+    if (reportAperto) renderReport();
     document.getElementById('desc-spesa').value = '';
     document.getElementById('importo-spesa').value = '';
     alert('💶 Spesa di €' + importo.toFixed(2) + ' aggiunta per ' + data);
@@ -301,16 +331,36 @@
     if (!confirm('Eliminare questo evento?')) return;
     log = log.filter(l => l.id !== id);
     salva();
-    renderReport();
+    if (reportAperto) renderReport();
   }
 
   function renderReport() {
     const div = document.getElementById('report');
-    if (log.length === 0) { div.innerHTML = '<p class="empty">Nessuna registrazione ancora</p>'; return; }
-    const logOrdinato = [...log].sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+    const cerca = (document.getElementById('cerca-report').value || '').toLowerCase().trim();
     const badge = { lavoro: 'badge-lavoro', reperibilità: 'badge-rep', ferie: 'badge-ferie', permesso: 'badge-permesso', malattia: 'badge-malattia', spesa: 'badge-spese' };
     const label = { lavoro: 'Lavorato', reperibilità: 'Reperibilità', ferie: 'Ferie', permesso: 'Permesso', malattia: 'Malattia', spesa: 'Spesa' };
-    div.innerHTML = logOrdinato.map(r => {
+
+    let logFiltrato = [...log].sort((a, b) => (b.dataISO || '').localeCompare(a.dataISO || ''));
+
+    if (cerca) {
+      logFiltrato = logFiltrato.filter(r => {
+        return (r.data || '').toLowerCase().includes(cerca) ||
+               (r.cantiere || '').toLowerCase().includes(cerca) ||
+               (r.tipo || '').toLowerCase().includes(cerca) ||
+               (label[r.tipo] || '').toLowerCase().includes(cerca) ||
+               (r.tecnico || '').toLowerCase().includes(cerca) ||
+               (r.importo ? r.importo.toString() : '').includes(cerca);
+      });
+    }
+
+    document.getElementById('risultati-count').textContent = logFiltrato.length + ' risultat' + (logFiltrato.length === 1 ? 'o' : 'i');
+
+    if (logFiltrato.length === 0) {
+      div.innerHTML = '<p class="empty">' + (cerca ? 'Nessun risultato per "' + cerca + '"' : 'Nessuna registrazione ancora') + '</p>';
+      return;
+    }
+
+    div.innerHTML = logFiltrato.map(r => {
       let dettaglio = `<span class="badge ${badge[r.tipo] || ''}">${label[r.tipo] || r.tipo}</span>`;
       if (r.tipo === 'spesa') dettaglio += `${r.cantiere} — <strong>€${parseFloat(r.importo).toFixed(2)}</strong>`;
       else if (r.cantiere) dettaglio += r.cantiere;
@@ -434,7 +484,10 @@
   }
 
   renderCantieri();
-  renderReport();
 </script>
+<footer style="text-align:center; padding: 20px 0 30px; font-size: 12px; color: #aaa;">
+    sviluppato da Mirko Polizio
+  </footer>
+
 </body>
 </html>
