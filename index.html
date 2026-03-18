@@ -26,6 +26,7 @@
     .btn-spese { background: #ff9500; color: white; }
     .btn-export { background: #007aff; color: white; }
     .btn-pdf { background: #1c1c1e; color: white; }
+    .btn-elimina { background: #ff3b30; color: white; }
     .cantiere-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
     .cantiere-item:last-child { border-bottom: none; }
     .cantiere-nome { font-size: 15px; font-weight: 500; }
@@ -64,6 +65,7 @@
     <h2>👷 Tecnico</h2>
     <input type="text" id="nome-tecnico" placeholder="Nome e Cognome (es. Mirko Polizio)">
     <button class="btn-add" onclick="salvaTecnico()">Salva Nome</button>
+    <button class="btn-elimina" id="btn-elimina-tecnico" style="display:none" onclick="eliminaTecnico()">✕ Elimina Tecnico</button>
     <div class="tecnico-attivo" id="tecnico-attivo"></div>
   </div>
 
@@ -152,14 +154,10 @@
   document.getElementById('data-oggi').textContent = oggi.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
   const dataOggiISO = oggi.toISOString().split('T')[0];
-  sincronizzaDateIniziale(dataOggiISO);
-
-  function sincronizzaDateIniziale(val) {
-    ['data-globale','data-movimento','data-assenza','data-reperibilita','data-spesa'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
-    });
-  }
+  ['data-globale','data-movimento','data-assenza','data-reperibilita','data-spesa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = dataOggiISO;
+  });
 
   function sincronizzaDate(val) {
     ['data-globale','data-movimento','data-assenza','data-reperibilita','data-spesa'].forEach(id => {
@@ -168,7 +166,6 @@
     });
   }
 
-  // Popola mese/anno export
   const mesiNomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const selMese = document.getElementById('mese-export');
   const selAnno = document.getElementById('anno-export');
@@ -191,6 +188,7 @@
   if (tecnico) {
     document.getElementById('tecnico-attivo').textContent = '✅ Tecnico: ' + tecnico;
     document.getElementById('nome-tecnico').value = tecnico;
+    document.getElementById('btn-elimina-tecnico').style.display = 'block';
   }
 
   function salva() {
@@ -204,7 +202,17 @@
     tecnico = nome;
     localStorage.setItem('tecnico', tecnico);
     document.getElementById('tecnico-attivo').textContent = '✅ Tecnico: ' + tecnico;
+    document.getElementById('btn-elimina-tecnico').style.display = 'block';
     alert('Nome salvato!');
+  }
+
+  function eliminaTecnico() {
+    if (!confirm('Eliminare il tecnico salvato?')) return;
+    tecnico = '';
+    localStorage.removeItem('tecnico');
+    document.getElementById('tecnico-attivo').textContent = '';
+    document.getElementById('nome-tecnico').value = '';
+    document.getElementById('btn-elimina-tecnico').style.display = 'none';
   }
 
   function aggiungiCantiere() {
