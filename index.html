@@ -26,7 +26,6 @@
     .btn-spese { background: #ff9500; color: white; }
     .btn-export { background: #007aff; color: white; }
     .btn-pdf { background: #1c1c1e; color: white; }
-    .btn-elimina { background: #ff3b30; color: white; }
     .cantiere-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
     .cantiere-item:last-child { border-bottom: none; }
     .cantiere-nome { font-size: 15px; font-weight: 500; }
@@ -54,7 +53,7 @@
 <body>
 
 <header>
-  <h1>⚡ Cantieri App</h1>
+  <h1>📋 Worklog</h1>
   <p id="data-oggi"></p>
 </header>
 
@@ -63,9 +62,8 @@
   <!-- TECNICO -->
   <div class="card">
     <h2>👷 Tecnico</h2>
-    <input type="text" id="nome-tecnico" placeholder="Nome e Cognome (es. Mirko Polizio)">
+    <input type="text" id="nome-tecnico" placeholder="Nome e Cognome (es. Mario Rossi)">
     <button class="btn-add" onclick="salvaTecnico()">Salva Nome</button>
-    <button class="btn-elimina" id="btn-elimina-tecnico" style="display:none" onclick="eliminaTecnico()">✕ Elimina Tecnico</button>
     <div class="tecnico-attivo" id="tecnico-attivo"></div>
   </div>
 
@@ -78,23 +76,23 @@
 
   <!-- AGGIUNGI CANTIERE -->
   <div class="card">
-    <h2>📍 Aggiungi Cantiere</h2>
-    <input type="text" id="nome-cantiere" placeholder="Nome cantiere (es. Villa Rossi - Taranto)">
+    <h2>📍 Aggiungi Luogo di Lavoro</h2>
+    <input type="text" id="nome-cantiere" placeholder="Nome luogo (es. Sede centrale, Cantiere Roma...)">
     <button class="btn-add" onclick="aggiungiCantiere()">+ Aggiungi</button>
   </div>
 
   <!-- CANTIERI SALVATI -->
   <div class="card">
-    <h2>📋 Cantieri Salvati</h2>
-    <div id="lista-cantieri"><p class="empty">Nessun cantiere aggiunto</p></div>
+    <h2>📋 Luoghi Salvati</h2>
+    <div id="lista-cantieri"><p class="empty">Nessun luogo aggiunto</p></div>
   </div>
 
   <!-- REGISTRA LAVORO -->
   <div class="card">
     <h2>🏗 Registra Giornata Lavorativa</h2>
-    <p class="label">Cantiere</p>
+    <p class="label">Luogo di lavoro</p>
     <select id="cantiere-selezionato">
-      <option value="">— Seleziona cantiere —</option>
+      <option value="">— Seleziona luogo —</option>
     </select>
     <p class="label">Data</p>
     <input type="date" id="data-movimento" onchange="sincronizzaDate(this.value)">
@@ -188,7 +186,6 @@
   if (tecnico) {
     document.getElementById('tecnico-attivo').textContent = '✅ Tecnico: ' + tecnico;
     document.getElementById('nome-tecnico').value = tecnico;
-    document.getElementById('btn-elimina-tecnico').style.display = 'block';
   }
 
   function salva() {
@@ -202,23 +199,13 @@
     tecnico = nome;
     localStorage.setItem('tecnico', tecnico);
     document.getElementById('tecnico-attivo').textContent = '✅ Tecnico: ' + tecnico;
-    document.getElementById('btn-elimina-tecnico').style.display = 'block';
     alert('Nome salvato!');
-  }
-
-  function eliminaTecnico() {
-    if (!confirm('Eliminare il tecnico salvato?')) return;
-    tecnico = '';
-    localStorage.removeItem('tecnico');
-    document.getElementById('tecnico-attivo').textContent = '';
-    document.getElementById('nome-tecnico').value = '';
-    document.getElementById('btn-elimina-tecnico').style.display = 'none';
   }
 
   function aggiungiCantiere() {
     const nome = document.getElementById('nome-cantiere').value.trim();
-    if (!nome) return alert('Inserisci il nome del cantiere');
-    if (cantieri.includes(nome)) return alert('Cantiere già presente');
+    if (!nome) return alert('Inserisci il nome del luogo');
+    if (cantieri.includes(nome)) return alert('Luogo già presente');
     cantieri.push(nome);
     salva();
     renderCantieri();
@@ -236,8 +223,8 @@
     const lista = document.getElementById('lista-cantieri');
     const sel = document.getElementById('cantiere-selezionato');
     if (cantieri.length === 0) {
-      lista.innerHTML = '<p class="empty">Nessun cantiere aggiunto</p>';
-      sel.innerHTML = '<option value="">— Seleziona cantiere —</option>';
+      lista.innerHTML = '<p class="empty">Nessun luogo aggiunto</p>';
+      sel.innerHTML = '<option value="">— Seleziona luogo —</option>';
       return;
     }
     lista.innerHTML = cantieri.map(c => `
@@ -245,18 +232,18 @@
         <span class="cantiere-nome">📍 ${c}</span>
         <button class="delete-btn" onclick="eliminaCantiere('${c.replace(/'/g,"\\'")}')">✕</button>
       </div>`).join('');
-    sel.innerHTML = '<option value="">— Seleziona cantiere —</option>' +
+    sel.innerHTML = '<option value="">— Seleziona luogo —</option>' +
       cantieri.map(c => `<option value="${c}">${c}</option>`).join('');
   }
 
   function registraLavoro() {
     const cantiere = document.getElementById('cantiere-selezionato').value;
-    if (!cantiere) return alert('Seleziona un cantiere');
+    if (!cantiere) return alert('Seleziona un luogo');
     const dataISO = document.getElementById('data-movimento').value;
     const straordinari = document.getElementById('straordinari').value;
     if (!dataISO) return alert('Seleziona una data');
     const giàPresente = log.find(l => l.dataISO === dataISO && l.tipo === 'lavoro' && l.cantiere === cantiere);
-    if (giàPresente) return alert('Giornata già registrata per questo cantiere');
+    if (giàPresente) return alert('Giornata già registrata per questo luogo');
     const data = new Date(dataISO + 'T12:00:00').toLocaleDateString('it-IT');
     const id = Date.now();
     log.unshift({ id, data, dataISO, cantiere, tecnico, tipo: 'lavoro', straordinari: straordinari || '' });
@@ -436,14 +423,14 @@
 
   function esportaCSV() {
     if (log.length === 0) return alert('Nessun dato da esportare');
-    let csv = 'Data,Cantiere/Descrizione,Tecnico,Tipo,Straordinari,Importo\n';
+    let csv = 'Data,Luogo/Descrizione,Tecnico,Tipo,Straordinari,Importo\n';
     [...log].sort((a,b) => (a.dataISO||'').localeCompare(b.dataISO||'')).forEach(r => {
       csv += `${r.data},"${r.cantiere}","${r.tecnico||''}",${r.tipo},${r.straordinari||''},${r.importo||''}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'cantieri-report.csv'; a.click();
+    a.href = url; a.download = 'worklog-report.csv'; a.click();
   }
 
   renderCantieri();
