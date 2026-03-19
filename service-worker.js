@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Worklog-v2';
+const CACHE_NAME = 'Worklog-v3';
 const urlsToCache = [
   '/Worklog/',
   '/Worklog/index.html',
