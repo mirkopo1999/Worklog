@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worklog Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, sans-serif; background: #1c1c1e; color: white; min-height: 100vh; padding: 20px; }
+    .header { text-align: center; padding: 40px 0 30px; }
+    .header h1 { font-size: 28px; font-weight: 800; color: #ff6b00; }
+    .header p { font-size: 14px; color: #8e8e93; margin-top: 4px; }
+    .container { max-width: 500px; margin: auto; }
+    .card { background: #2c2c2e; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #3a3a3c; }
+    .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #ff6b00; }
+    .field-label { font-size: 12px; color: #8e8e93; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 12px 14px; border: 1px solid #3a3a3c; border-radius: 10px; font-size: 15px; margin-bottom: 12px; background: #1c1c1e; color: white; outline: none; }
+    button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+    .btn-primary { background: #ff6b00; color: white; }
+    .btn-danger { background: #ff3b30; color: white; }
+    .result-box { background: #1c1c1e; border: 1px solid #3a3a3c; border-radius: 10px; padding: 14px; margin-top: 12px; font-family: monospace; font-size: 14px; color: #34c759; word-break: break-all; display: none; }
+    .licenze-list { margin-top: 8px; }
+    .licenza-item { background: #1c1c1e; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid #34c759; }
+    .licenza-item.scaduta { border-left-color: #ff3b30; opacity: 0.6; }
+    .licenza-item.disattiva { border-left-color: #8e8e93; opacity: 0.5; }
+    .licenza-nome { font-size: 15px; font-weight: 600; }
+    .licenza-info { font-size: 12px; color: #8e8e93; margin-top: 4px; }
+    .licenza-codice { font-size: 11px; color: #ff6b00; font-family: monospace; margin-top: 4px; word-break: break-all; }
+    .licenza-azioni { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-small { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-copia { background: #3a3a3c; color: white; }
+    .btn-disattiva { background: #ff3b30; color: white; }
+    .btn-riattiva { background: #34c759; color: white; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+    .badge-attiva { background: #1a4a1a; color: #34c759; }
+    .badge-scaduta { background: #4a1a1a; color: #ff3b30; }
+    .badge-disattiva { background: #3a3a3c; color: #8e8e93; }
+    .login-screen { max-width: 300px; margin: 100px auto; text-align: center; }
+    .login-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+    .secret-key { background: #2c2c2e; border: 1px solid #3a3a3c; border-radius: 10px; padding: 20px; margin-bottom: 20px; font-size: 13px; color: #8e8e93; line-height: 1.6; }
+    .empty { text-align: center; color: #8e8e93; font-size: 14px; padding: 20px; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen" class="login-screen">
+  <h2>🔐 Worklog Admin</h2>
+  <div class="secret-key">Inserisci la tua password amministratore per accedere al pannello di controllo.</div>
+  <input type="password" id="admin-password" placeholder="Password admin" onkeydown="if(event.key==='Enter') verificaPassword()">
+  <button class="btn-primary" onclick="verificaPassword()">Accedi</button>
+  <div id="login-error" style="color:#ff3b30; font-size:13px; margin-top:8px; display:none">Password errata</div>
+</div>
+
+<div id="admin-panel" style="display:none">
+  <div class="header">
+    <h1>⚡ Worklog Admin</h1>
+    <p>Pannello di gestione licenze</p>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+      <h2>➕ Genera Nuova Licenza</h2>
+      <div class="field-label">Nome azienda</div>
+      <input type="text" id="nome-azienda" placeholder="es. Rossi Costruzioni">
+      <div class="field-label">Durata licenza</div>
+      <select id="durata-licenza">
+        <option value="365">1 anno</option>
+        <option value="730">2 anni</option>
+        <option value="180">6 mesi</option>
+        <option value="90">3 mesi</option>
+      </select>
+      <button class="btn-primary" onclick="generaLicenza()">🔑 Genera Codice Licenza</button>
+      <div class="result-box" id="result-box"></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 Licenze Attive</h2>
+      <div class="licenze-list" id="licenze-list">
+        <div class="empty">Nessuna licenza generata</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // CAMBIA QUESTA PASSWORD CON UNA TUA PERSONALE
+  const ADMIN_PASSWORD = 'worklog2026mirko';
+  const SECRET_KEY = 'WL-SECRET-2026-MIRKO';
+
+  function verificaPassword() {
+    const pwd = document.getElementById('admin-password').value;
+    if (pwd === ADMIN_PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+      renderLicenze();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+
+  function generaHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).toUpperCase().padStart(8, '0');
+  }
+
+  function generaLicenza() {
+    const nome = document.getElementById('nome-azienda').value.trim();
+    const durata = parseInt(document.getElementById('durata-licenza').value);
+    if (!nome) return alert('Inserisci il nome dell\'azienda');
+
+    const scadenza = new Date();
+    scadenza.setDate(scadenza.getDate() + durata);
+    const scadenzaISO = scadenza.toISOString().split('T')[0];
+
+    const payload = `${nome}|${scadenzaISO}|${SECRET_KEY}`;
+    const firma = generaHash(payload);
+    const codice = `WL-${firma}-${scadenzaISO.replace(/-/g,'')}`;
+
+    const licenze = JSON.parse(localStorage.getItem('licenze_admin') || '[]');
+    licenze.push({
+      nome,
+      codice,
+      scadenza: scadenzaISO,
+      creata: new Date().toISOString().split('T')[0],
+      attiva: true
+    });
+    localStorage.setItem('licenze_admin', JSON.stringify(licenze));
+
+    const box = document.getElementById('result-box');
+    box.style.display = 'block';
+    box.textContent = codice;
+
+    document.getElementById('nome-azienda').value = '';
+    renderLicenze();
+    alert('✅ Licenza generata! Copia il codice e mandalo al cliente.');
+  }
+
+  function copiaLicenza(codice) {
+    navigator.clipboard.writeText(codice).then(() => alert('✅ Codice copiato!'));
+  }
+
+  function disattivaLicenza(idx) {
+    if (!confirm('Disattivare questa licenza?')) return;
+    const licenze = JSON.parse(localStorage.getItem('licenze_admin') || '[]');
+    licenze[idx].attiva = false;
+    localStorage.setItem('licenze_admin', JSON.stringify(licenze));
+    renderLicenze();
+  }
+
+  function riattivaLicenza(idx) {
+    const licenze = JSON.parse(localStorage.getItem('licenze_admin') || '[]');
+    licenze[idx].attiva = true;
+    localStorage.setItem('licenze_admin', JSON.stringify(licenze));
+    renderLicenze();
+  }
+
+  function renderLicenze() {
+    const licenze = JSON.parse(localStorage.getItem('licenze_admin') || '[]');
+    const div = document.getElementById('licenze-list');
+    if (licenze.length === 0) { div.innerHTML = '<div class="empty">Nessuna licenza generata</div>'; return; }
+    const oggi = new Date().toISOString().split('T')[0];
+    div.innerHTML = [...licenze].reverse().map((l, i) => {
+      const idxReale = licenze.length - 1 - i;
+      const scaduta = l.scadenza < oggi;
+      const classe = !l.attiva ? 'disattiva' : scaduta ? 'scaduta' : '';
+      const badge = !l.attiva ? '<span class="badge badge-disattiva">Disattiva</span>' : scaduta ? '<span class="badge badge-scaduta">Scaduta</span>' : '<span class="badge badge-attiva">Attiva</span>';
+      return `<div class="licenza-item ${classe}">
+        <div class="licenza-nome">${l.nome} ${badge}</div>
+        <div class="licenza-info">Creata: ${l.creata} · Scadenza: ${l.scadenza}</div>
+        <div class="licenza-codice">${l.codice}</div>
+        <div class="licenza-azioni">
+          <button class="btn-small btn-copia" onclick="copiaLicenza('${l.codice}')">📋 Copia</button>
+          ${l.attiva ? `<button class="btn-small btn-disattiva" onclick="disattivaLicenza(${idxReale})">🚫 Disattiva</button>` : `<button class="btn-small btn-riattiva" onclick="riattivaLicenza(${idxReale})">✅ Riattiva</button>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>
