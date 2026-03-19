@@ -20,11 +20,8 @@
     .header-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff6b00, #ff3d00); display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
     .header-date { font-size: 15px; color: #8e8e93; font-weight: 400; }
     .container { padding: 16px; max-width: 500px; margin: auto; padding-bottom: 40px; }
-
-    /* STATS */
     .stats-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .stats-header .section-title { margin: 0; }
-    .mese-selector { display: flex; align-items: center; gap: 6px; }
     .mese-selector select { border: none; background: transparent; font-size: 13px; color: #ff6b00; font-weight: 600; outline: none; }
     .stats { display: flex; gap: 10px; margin-bottom: 24px; }
     .stat { flex: 1; background: white; border-radius: 16px; padding: 14px 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
@@ -33,7 +30,6 @@
     .stat-num.green { color: #34c759; }
     .stat-num.blue { color: #007aff; }
     .stat-label { font-size: 11px; color: #8e8e93; font-weight: 500; margin-top: 2px; }
-
     .section-title { font-size: 13px; font-weight: 700; color: #8e8e93; letter-spacing: 0.3px; text-transform: uppercase; margin: 0 4px 8px; }
     .card { background: white; border-radius: 16px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
     .card-row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f2f2f7; cursor: pointer; transition: background 0.15s; }
@@ -45,14 +41,12 @@
     .icon-blue { background: #007aff; }
     .icon-purple { background: #5856d6; }
     .icon-red { background: #ff3b30; }
-    .icon-yellow { background: #ff9500; }
     .icon-gray { background: #8e8e93; }
     .icon-dark { background: #1c1c1e; }
+    .icon-teal { background: #32ade6; }
     .row-label { font-size: 16px; color: #1c1c1e; font-weight: 500; flex: 1; }
     .row-value { font-size: 14px; color: #8e8e93; margin-right: 6px; }
     .chevron { color: #c7c7cc; font-size: 16px; font-weight: 300; }
-
-    /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-end; }
     .modal-overlay.open { display: flex; }
     .modal { background: #f2f2f7; border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; margin: auto; padding: 0 0 40px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
@@ -69,12 +63,9 @@
     .modal-btn { width: calc(100% - 32px); margin: 16px 16px 0; padding: 15px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; }
     .modal-btn-primary { background: #ff6b00; color: white; }
     .modal-btn-secondary { background: white; color: #ff6b00; margin-top: 8px; }
-
-    /* LUOGHI PANEL */
+    .modal-btn-green { background: #34c759; color: white; margin-top: 8px; }
+    .modal-btn-red { background: #ff3b30; color: white; margin-top: 8px; }
     .luoghi-hidden { display: none; }
-    .luoghi-panel { padding: 0 0 8px; }
-
-    /* REPORT */
     .report-hidden { display: none; }
     .search-wrap { background: white; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
     .search-wrap input { border: none; outline: none; font-size: 15px; color: #1c1c1e; flex: 1; background: transparent; }
@@ -101,6 +92,7 @@
     .date-bar input { border: none; outline: none; font-size: 15px; color: #ff6b00; font-weight: 600; text-align: right; background: transparent; }
     .luoghi-item { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f2f2f7; }
     .luoghi-item:last-child { border-bottom: none; }
+    .backup-info { font-size: 13px; color: #8e8e93; padding: 12px 16px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -124,7 +116,7 @@
     </div>
   </div>
   <div class="stats">
-    <div class="stat"><div class="stat-num green" id="stat-lavoro">0</div><div class="stat-label">Lavoro</div></div>
+    <div class="stat"><div class="stat-num green" id="stat-lavoro">0g</div><div class="stat-label">Lavoro</div></div>
     <div class="stat"><div class="stat-num orange" id="stat-straord">0h</div><div class="stat-label">Straordinari</div></div>
     <div class="stat"><div class="stat-num blue" id="stat-spese">€0</div><div class="stat-label">Spese</div></div>
   </div>
@@ -181,7 +173,7 @@
   </div>
 
   <!-- REPORT -->
-  <div class="section-title" id="report-section-title" style="margin-top:8px">Report</div>
+  <div class="section-title" style="margin-top:8px">Report</div>
   <div class="card">
     <div class="card-row" onclick="toggleReport()">
       <div class="icon-wrap icon-dark">📊</div>
@@ -206,9 +198,9 @@
       <div class="row-label">Esporta PDF Presenze</div>
       <div class="chevron">›</div>
     </div>
-    <div class="card-row" onclick="esportaCSV()">
-      <div class="icon-wrap icon-blue">⬇</div>
-      <div class="row-label">Esporta CSV</div>
+    <div class="card-row" onclick="apriModal('modal-backup')">
+      <div class="icon-wrap icon-teal">💾</div>
+      <div class="row-label">Backup & Ripristino</div>
       <div class="chevron">›</div>
     </div>
   </div>
@@ -338,6 +330,26 @@
   </div>
 </div>
 
+<!-- BACKUP MODAL -->
+<div class="modal-overlay" id="modal-backup">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">💾 Backup & Ripristino</div>
+      <button class="modal-close" onclick="chiudiModal('modal-backup')">Chiudi</button>
+    </div>
+    <div class="modal-body">
+      <div class="backup-info">
+        💾 <strong>Backup</strong> — scarica un file con tutti i tuoi dati (cantieri, report, spese). Salvalo su iCloud o mandatelo a te stesso su WhatsApp.<br><br>
+        🔄 <strong>Ripristino</strong> — seleziona un file di backup per ripristinare tutti i dati.
+      </div>
+    </div>
+    <button class="modal-btn modal-btn-primary" onclick="eseguiBackup()">💾 Scarica Backup</button>
+    <button class="modal-btn modal-btn-green" onclick="document.getElementById('file-ripristino').click()">🔄 Ripristina da Backup</button>
+    <input type="file" id="file-ripristino" accept=".json" style="display:none" onchange="ripristinaBackup(this)">
+  </div>
+</div>
+
 <script>
   const oggi = new Date();
   document.getElementById('data-oggi').textContent = oggi.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -362,7 +374,6 @@
 
   const mesiNomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 
-  // Selettori stat
   const statMese = document.getElementById('stat-mese');
   const statAnno = document.getElementById('stat-anno');
   mesiNomi.forEach((m, i) => {
@@ -379,7 +390,6 @@
   statMese.addEventListener('change', aggiornaStats);
   statAnno.addEventListener('change', aggiornaStats);
 
-  // Selettori export
   const selMese = document.getElementById('mese-export');
   const selAnno = document.getElementById('anno-export');
   mesiNomi.forEach((m, i) => {
@@ -560,6 +570,60 @@
     if (reportAperto) renderReport();
   }
 
+  // BACKUP
+  function eseguiBackup() {
+    const backup = {
+      versione: '1.0',
+      data: new Date().toISOString(),
+      tecnico,
+      cantieri,
+      log
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dataOggi = new Date().toLocaleDateString('it-IT').replace(/\//g, '-');
+    a.href = url;
+    a.download = `worklog-backup-${dataOggi}.json`;
+    a.click();
+    chiudiModal('modal-backup');
+    alert('✅ Backup salvato! Conservalo su iCloud o mandatelo a te stesso su WhatsApp.');
+  }
+
+  function ripristinaBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const backup = JSON.parse(e.target.result);
+        if (!backup.cantieri || !backup.log) return alert('File non valido');
+        if (!confirm('Ripristinare il backup del ' + new Date(backup.data).toLocaleDateString('it-IT') + '? I dati attuali verranno sostituiti.')) return;
+        cantieri = backup.cantieri || [];
+        log = backup.log || [];
+        tecnico = backup.tecnico || '';
+        localStorage.setItem('cantieri', JSON.stringify(cantieri));
+        localStorage.setItem('log', JSON.stringify(log));
+        localStorage.setItem('tecnico', tecnico);
+        if (tecnico) {
+          document.getElementById('tecnico-attivo').textContent = '✅ ' + tecnico;
+          document.getElementById('nome-tecnico').value = tecnico;
+          const initials = tecnico.split(' ').map(p => p[0]).join('').toUpperCase().slice(0,2);
+          document.getElementById('avatar-btn').textContent = initials;
+        }
+        renderCantieri();
+        aggiornaStats();
+        if (reportAperto) renderReport();
+        chiudiModal('modal-backup');
+        alert('✅ Backup ripristinato con successo!');
+      } catch(err) {
+        alert('Errore nel file di backup. Assicurati di selezionare il file corretto.');
+      }
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
+
   let reportAperto = false;
   function toggleReport() {
     reportAperto = !reportAperto;
@@ -698,18 +762,6 @@
       });
       doc.save(`presenze_${nomeMese}_${anno}.pdf`);
     }, 300);
-  }
-
-  function esportaCSV() {
-    if (log.length === 0) return alert('Nessun dato da esportare');
-    let csv = 'Data,Luogo/Descrizione,Tecnico,Tipo,Straordinari,Importo\n';
-    [...log].sort((a,b) => (a.dataISO||'').localeCompare(b.dataISO||'')).forEach(r => {
-      csv += `${r.data},"${r.cantiere}","${r.tecnico||''}",${r.tipo},${r.straordinari||''},${r.importo||''}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'worklog-report.csv'; a.click();
   }
 
   if ('serviceWorker' in navigator) {
